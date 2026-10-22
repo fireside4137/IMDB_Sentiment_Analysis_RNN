@@ -28,13 +28,14 @@ The original notebook performed a series of ad‑hoc preprocessing steps, many o
 flowchart TD
     A[Load CSV] --> B[Deduplicate]
     B --> C[Preprocess text]
-    C --> D[Train‑test split (raw text)]
-    D --> E[TF‑IDF fit on train]
-    E --> F[Transform train & test]
+    C --> D["Train-test split (raw text)"]
+    D --> E["TF-IDF fit on train"]
+    E --> F["Transform train & test"]
     F --> G[Create TensorDatasets]
     G --> H[Train RNN]
-    H --> I[Evaluate & Early Stop]
-    I --> J[Save model & vectorizer]
+    H --> I["Evaluate & Early Stop"]
+    I --> J["Save model & vectorizer"]
+
 ```
 
 ## Quick Start
