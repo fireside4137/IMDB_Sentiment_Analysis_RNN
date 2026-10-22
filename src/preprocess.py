@@ -32,6 +32,7 @@ from nltk.tokenize import word_tokenize
 # Ensure required NLTK resources are available (they were
 # downloaded in the original notebook).
 nltk.download("punkt", quiet=True)
+nltk.download("punkt_tab", quiet=True)
 nltk.download("stopwords", quiet=True)
 
 _stop_words_set = set(stopwords.words("english"))
