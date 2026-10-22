@@ -42,8 +42,8 @@ flowchart TD
 
 ```bash
 # Clone the repo
-git clone https://github.com/youruser/imdb-sentiment.git
-cd imdb-sentiment
+git clone https://github.com/fireside4137/IMDB_Sentiment_Analysis_RNN
+cd IMDB_Sentiment_Analysis_RNN
 
 # Create a virtual environment (Python ≥3.10)
 python -m venv .venv && source .venv/bin/activate
