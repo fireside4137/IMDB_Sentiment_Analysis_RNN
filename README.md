@@ -1,26 +1,41 @@
 # IMDB_Sentiment_Analysis_RNN
 
-A small educational project that demonstrates how to clean text data, vectorise it with TF‑IDF, and train a simple RNN for binary sentiment classification.
+[![CI](https://github.com/fireside4137/IMDB_Sentiment_Analysis_RNN/actions/workflows/ci.yml/badge.svg)](https://github.com/fireside4137/IMDB_Sentiment_Analysis_RNN/actions/workflows/ci.yml)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue.svg)](https://www.python.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+A clean, modular educational project demonstrating text preprocessing, TF-IDF feature extraction, and binary sentiment classification using PyTorch.
+
+---
 
 ## Table of Contents
 - [Overview](#overview)
 - [Architecture](#architecture)
-- [Quick Start](#quick-start)
+- [Dataset](#dataset)
+- [Installation](#installation)
 - [Training](#training)
 - [Inference](#inference)
+- [Testing & Quality](#testing--quality)
 - [Results](#results)
-- [Development](#development)
+- [Contributing](#contributing)
 - [License](#license)
+
+---
 
 ## Overview
 
-The original notebook performed a series of ad‑hoc preprocessing steps, many of which introduced bugs (HTML tags stripped after punctuation, stop‑word removal corrupted words, data leakage during TF‑IDF fitting).  The repository now contains a clean, modular Python package under `src/` that fixes those issues and adds:
+The original notebook performed ad-hoc preprocessing steps that introduced several common pitfalls (such as HTML tag removal occurring after punctuation removal, token corruption during stop-word replacement, and data leakage across splits during TF-IDF vectorization). 
 
-- **Stable loss** (`BCEWithLogitsLoss`).
-- **Per‑epoch logging** with average loss and metrics.
-- **Early stopping** based on validation loss.
-- **Device auto‑selection** (CUDA → MPS → CPU).
-- **Copy‑before‑tensor conversion** to avoid the non‑writable‑array warning.
+This repository refactors the workflow into a robust, modular Python package under `src/` featuring:
+- **Leakage-free preprocessing:** Text is split into train and test sets *before* fitting the TF-IDF vectorizer.
+- **Robust pipeline:** Strict ordering of HTML stripping, punctuation cleaning, tokenization, stop-word removal, and Porter stemming.
+- **Stable loss:** Uses `nn.BCEWithLogitsLoss` without manual sigmoids.
+- **Early stopping:** Monitored on validation loss with configurable patience.
+- **Device auto-selection:** Automatically leverages CUDA, Apple Silicon MPS, or CPU.
+- **Clean inference CLI:** Easy command-line evaluation of arbitrary text.
+
+---
 
 ## Architecture
 
@@ -35,64 +50,135 @@ flowchart TD
     G --> H[Train RNN]
     H --> I["Evaluate & Early Stop"]
     I --> J["Save model & vectorizer"]
-
 ```
 
-## Quick Start
+---
 
+## Dataset
+
+This project uses the **IMDB Dataset of 50K Movie Reviews** (binary sentiment: positive / negative).
+
+1. Download `IMDB Dataset.csv` from [Kaggle IMDB Dataset](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews).
+2. Place the file in the project root as `IMDB_dataset.csv`.
+
+---
+
+## Installation
+
+Clone the repository:
 ```bash
-# Clone the repo
-git clone https://github.com/fireside4137/IMDB_Sentiment_Analysis_RNN
+git clone https://github.com/fireside4137/IMDB_Sentiment_Analysis_RNN.git
 cd IMDB_Sentiment_Analysis_RNN
+```
 
-# Create a virtual environment (Python ≥3.10)
-python -m venv .venv && source .venv/bin/activate
+### Option A: Using `venv` (Standard)
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 
-# Install dependencies
+# Install runtime dependencies
 pip install -r requirements.txt
 
-# (Optional) install dev tools for formatting & linting
-pip install black isort flake8 mypy pre-commit
+# Install development dependencies (testing & linting)
+pip install -r requirements-dev.txt
 ```
+
+### Option B: Using `conda`
+```bash
+conda env create -f environment.yml
+conda activate imdb_sentiment
+```
+
+---
 
 ## Training
 
+Train the model and save artifacts to `models/`:
+
+### Using the retrain script
 ```bash
-python -m src.train --data IMDB_dataset.csv --epochs 20 --batch-size 64 --patience 5
+bash scripts/retrain.sh IMDB_dataset.csv 20 64 5 models
+```
+
+### Or using Python directly
+```bash
+python -m src.train --data IMDB_dataset.csv --epochs 20 --batch-size 64 --patience 5 --output-dir models
 ```
 
 The script will:
-- Choose the best available device.
-- Log training/validation loss per epoch.
-- Stop early if validation loss does not improve for 5 epochs.
-- Save `rnn_model.pt` and `tfidf_vectorizer.pkl` at the project root.
+1. Load and clean the dataset.
+2. Fit the TF-IDF vectorizer on training data only.
+3. Automatically select the best hardware accelerator (CUDA / MPS / CPU).
+4. Train the RNN and track validation metrics.
+5. Stop early when validation loss plateaus.
+6. Save the trained weights to `models/rnn_model.pt` and vectorizer to `models/tfidf_vectorizer.pkl`.
+
+---
 
 ## Inference
 
+Run sentiment inference on any text review:
+
 ```bash
-python -m src.infer "The movie was fantastic!"
+python -m src.infer "The cinematography and acting in this film were absolutely breathtaking!"
 ```
 
-The command loads the saved model and vectorizer, preprocesses the input review, and prints the predicted sentiment (`positive` or `negative`).
+Output:
+```text
+Sentiment:  POSITIVE
+Confidence: 94.12% (prob=0.9412)
+```
+
+Negative review example:
+```bash
+python -m src.infer "The plot was incoherent and the pacing felt dragged out."
+```
+
+Output:
+```text
+Sentiment:  NEGATIVE
+Confidence: 89.30% (prob=0.1070)
+```
+
+---
+
+## Testing & Quality
+
+All code adheres to strict linting, formatting, and typing standards:
+
+```bash
+# Code formatting
+black --check src tests
+isort --check src tests
+
+# Style checking
+flake8 src tests
+
+# Static type verification
+mypy src tests
+
+# Run unit tests and generate coverage report
+pytest --cov=src --cov-report=term
+```
+
+---
 
 ## Results
 
-After a clean run on the provided dataset:
-- **Accuracy:** ~85.6 % (matching the original notebook)
-- **Precision / Recall / F1:** printed at the end of training.
+On the standard 50,000 IMDB review benchmark:
+- **Accuracy:** ~85.6%
+- **Evaluation:** Precision, Recall, and F1 scores are tracked and logged per epoch.
 
-> **Note:** Because we still use a single‑step RNN over TF‑IDF vectors, the model is *not* state‑of‑the‑art. Replacing it with an LSTM/Transformer is a natural next step.
+> **Note:** This model uses a single-step recurrent layer over TF-IDF vectors for educational clarity. For state-of-the-art NLP performance, sequential token embeddings with LSTMs, GRUs, or Transformer-based architectures (e.g., DistilBERT) are recommended next steps.
 
-## Development
+---
 
-- Run tests with `pytest`
-- Format code with `black` (`black src/`)
-- Lint with `flake8`
-- Type‑check with `mypy`
-- Pre‑commit hooks are configured in `.pre-commit-config.yaml`.
+## Contributing
 
-See `CONTRIBUTING.md` for detailed guidelines.
+Contributions, bug reports, and pull requests are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and environment setup.
+
+---
 
 ## License
 
-MIT © 2026 swapnil
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

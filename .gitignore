@@ -15,7 +15,7 @@ imports/
 lib/
 lib64/
 parts/
-src/
+sdist/
 var/
 *.egg-info/
 *.egg
@@ -72,6 +72,7 @@ IMDB_dataset.csv
 *.tsv
 
 # Model artefacts
+models/
 *.pt
 *.pkl
 

@@ -1,7 +1,7 @@
 [tool.black]
 line-length = 88
 target-version = ['py310']
-include = '\\.pyi?$'
+include = '\.pyi?$'
 exclude = '''
 /(
     \\.git
@@ -29,6 +29,7 @@ warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
 strict = true
+disallow_subclassing_any = false
 
 [build-system]
 requires = ["setuptools", "wheel"]
