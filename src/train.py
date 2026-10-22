@@ -78,8 +78,8 @@ def prepare_data(
 
 
 def train(
-    train_set: torch.utils.data.Dataset,
-    val_set: torch.utils.data.Dataset,
+    train_set: torch.utils.data.TensorDataset,
+    val_set: torch.utils.data.TensorDataset,
     input_size: int,
     device: torch.device,
     epochs: int = 20,
@@ -115,7 +115,7 @@ def train(
             loss.backward()
             optimizer.step()
             running_loss += loss.item() * xb.size(0)
-        avg_train_loss = running_loss / len(train_loader.dataset)
+        avg_train_loss = running_loss / len(train_set)
 
         # Validation
         model.eval()
@@ -131,7 +131,7 @@ def train(
                 preds = (torch.sigmoid(outputs) > 0.5).float().cpu().numpy()
                 all_preds.append(preds)
                 all_labels.append(yb.squeeze(1).cpu().numpy())
-        avg_val_loss = sum(val_losses) / len(val_loader.dataset)
+        avg_val_loss = sum(val_losses) / len(val_set)
         metrics = compute_metrics(np.concatenate(all_labels), np.concatenate(all_preds))
 
         print(

@@ -1,3 +1,5 @@
+from typing import cast
+
 import torch
 import torch.nn as nn
 
@@ -32,7 +34,7 @@ class RNN(nn.Module):
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size, device=x.device)
         out, _ = self.rnn(x, h0)
         out = self.fc(out[:, -1, :])  # Take the output from the last timestep
-        return out  # NOTE: logits (no sigmoid applied)
+        return cast(torch.Tensor, out)  # NOTE: logits (no sigmoid applied)
 
 
 __all__ = ["RNN"]
