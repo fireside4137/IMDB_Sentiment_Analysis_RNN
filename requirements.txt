@@ -1,0 +1,6 @@
+# Requirements for the IMDB sentiment analysis project
+pandas
+numpy
+scikit-learn
+torch
+nltk
