@@ -1,4 +1,4 @@
-# IMDB Sentiment Analysis
+# IMDB_Sentiment_Analysis_RNN
 
 A small educational project that demonstrates how to clean text data, vectorise it with TF‑IDF, and train a simple RNN for binary sentiment classification.
 
